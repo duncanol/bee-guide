@@ -62,7 +62,8 @@ function arcTweenTest() {
   var obj = {
     position: {
       x: pointsData[0][0], 
-      y: pointsData[0][1]
+      y: pointsData[0][1],
+      angle: 0
     },
     width: 50,
     height: 50,
@@ -89,8 +90,11 @@ function arcTweenTest() {
       .attr("y", function(o) { 
         return o.position.y - o.height / 2;
       })
+      .attr("transform", function(o) {
+        return "rotate(" + o.position.angle + ", " + o.position.x + ", " + o.position.y + ")";
+      })
       .attr("width", function(o) { return o.width; })
-      .attr("height", function(o) { return o.height; });
+      .attr("height", function(o) { return o.height; });;
 
   function tick() {
     objects
@@ -100,7 +104,10 @@ function arcTweenTest() {
       .attr("y", function(o) { 
         return o.position.y - o.height / 2;
       })
-  }
+      .attr("transform", function(o) {
+        return "rotate(" + o.position.angle + ", " + o.position.x + ", " + o.position.y + ")";
+      })
+  } 
 
   // d3.timer(function() {
   //   objects.each(function(d) {
@@ -111,15 +118,21 @@ function arcTweenTest() {
   d3.select(obj)
     .transition()
       .ease('linear')
-      .duration(1000)
-      .attrTween("position", arcTween);
+      .duration(3000)
+      .attrTween("position", function() {
+        return arcTween(this);
+      });
 
   function arcTween(o) {
     return function(t) {
       var placeOnLine = lineLength * t;
       var point = path.node().getPointAtLength(placeOnLine);
-      console.log(placeOnLine + " - " + point.x + "," + point.y);
-      return {x: point.x, y: point.y};
+      var xDiff = o.position.x - point.x;
+      var yDiff = o.position.y - point.y;
+      var angle = ((Math.atan2(yDiff, xDiff) / (Math.PI * 2)) * 360) - 90;
+      console.log("current position - " + o.position.x + "," + o.position.y + ",a=" + o.position.angle);
+      console.log("new position     - " + point.x + "," + point.y+ ",a=" + angle);
+      return {x: point.x, y: point.y, angle: angle};
     };
   }
 
