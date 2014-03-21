@@ -10,20 +10,6 @@ jQuery(document).ready(function() {
 
 function arcTweenTest() {
 
-  var obj = {
-    position: {
-      x: 100, 
-      y: 100,
-    }
-    // getAttribute: function(attr) {
-    //   return this[attr];
-    // },  
-    // setAttribute: function(attr, value) {
-    //   this[attr] = value;  
-    // }
-  };
-
-
   var w = 1000, h = 1000;
 
   var svg = d3.select("body").append("svg")
@@ -71,7 +57,24 @@ function arcTweenTest() {
           .attr("r", 5)
           .attr("fill", "yellow")
           .attr("stroke", "black");
-      
+
+
+  var obj = {
+    position: {
+      x: pointsData[0][0], 
+      y: pointsData[0][1]
+    },
+    width: 50,
+    height: 50,
+    getAttribute: function(attr) {
+      return this[attr];
+    },  
+    setAttribute: function(attr, value) {
+      this[attr] = value;  
+      tick();
+    }
+  };
+
   var objectGroup = svg.append("g")
     .attr("transform", "translate(" + 300 + "," + 300 + ")");
   var objects = objectGroup.selectAll("objects")
@@ -81,36 +84,45 @@ function arcTweenTest() {
     .append("svg:image")
       .attr("xlink:href", "/images/svg/Abeille-bee.svg")
       .attr("x", function(o) { 
-        return pointsData[0][0]; 
+        return o.position.x - o.width / 2; 
       })
       .attr("y", function(o) { 
-        return pointsData[0][1];
+        return o.position.y - o.height / 2;
       })
-      .attr("width", 50)
-      .attr("height", 50);
+      .attr("width", function(o) { return o.width; })
+      .attr("height", function(o) { return o.height; });
 
-  objects.transition()
+  function tick() {
+    objects
+      .attr("x", function(o) { 
+        return o.position.x - o.width / 2; 
+      })
+      .attr("y", function(o) { 
+        return o.position.y - o.height / 2;
+      })
+  }
+
+  // d3.timer(function() {
+  //   objects.each(function(d) {
+  //     moveObject(d)  
+  //   })
+  // }, 10);
+
+  d3.select(obj)
+    .transition()
+      .ease('linear')
       .duration(1000)
-      .attrTween("x", arcTweenX)
-      .attrTween("y", arcTweenY);
+      .attrTween("position", arcTween);
 
-  function arcTweenX(o) {
+  function arcTween(o) {
     return function(t) {
       var placeOnLine = lineLength * t;
       var point = path.node().getPointAtLength(placeOnLine);
       console.log(placeOnLine + " - " + point.x + "," + point.y);
-      return point.x;
+      return {x: point.x, y: point.y};
     };
   }
 
-  function arcTweenY(o) {
-    return function(t) {
-      var placeOnLine = lineLength * t;
-      var point = path.node().getPointAtLength(placeOnLine);
-      console.log(placeOnLine + " - " + point.x + "," + point.y);
-      return point.y;
-    };
-  }
 
 
 
