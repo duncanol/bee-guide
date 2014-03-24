@@ -12,6 +12,9 @@ function arcTweenTest() {
 
   var w = 1000, h = 1000;
 
+  var sx = d3.scale.identity();
+  var sy = d3.scale.identity();
+  
   var svg = d3.select("body").append("svg")
     .attr("width", w)
     .attr("height", h);
@@ -49,7 +52,7 @@ function arcTweenTest() {
       .enter()
         .append("circle")
           .attr("cx", function(d) { 
-            return d[0]; 
+            return sx(d[0]); 
           })
           .attr("cy", function(d) { 
             return d[1]; 
