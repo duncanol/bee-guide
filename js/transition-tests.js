@@ -10,29 +10,39 @@ jQuery(document).ready(function() {
 
 function arcTweenTest() {
 
-  var w = 1000, h = 1000;
+  var w = 700, h = 700;
 
-  var sx = d3.scale.identity();
-  var sy = d3.scale.identity();
+  var sx = d3.scale.linear().domain([-w / 2,w / 2]).range([0,w]);
+  var sy = d3.scale.linear().domain([-h / 2,h / 2]).range([h,0]);
   
-  var svg = d3.select("body").append("svg")
+  var svg = d3.select(".contains-svg").append("svg")
     .attr("width", w)
     .attr("height", h);
 
-  var arc = d3.svg.arc()
-      .innerRadius(140)
-      .outerRadius(140)
-      .startAngle(0)
-      .endAngle((90 / 360) * (2 * Math.PI));
+  svg.append("circle")
+    .attr("cx", sx(0))
+    .attr("cy", sy(0))
+    .attr("r", 10)
+    .attr("fill", "none")
+    .attr("stroke", "black");
+
+  // var arc = d3.svg.arc()
+  //     .innerRadius(140)
+  //     .outerRadius(140)
+  //     .startAngle(0)
+  //     .endAngle((90 / 360) * (2 * Math.PI));
 
 
   var pathContainer = 
     svg.append("g")
-      .attr("transform", "translate(" + 300 + "," + 300 + ")");
+      .attr("transform", "translate(" + sx(0) + "," + sy(0) + ")");
+
+
 
   var path =
     pathContainer.append("path")
-      .attr("d", "M 100 350 q 150 -300 300 0")
+      .attr("d", "M0,0 q150,150 300,0")
+      // .attr("d", "M " + sx(100) + " " + sy(350) + " q " + sx(150) + " " + sy(-300) + " " + sx(300) + " " + sy(0))
       .attr("fill", "none")
       .attr("stroke", "black");
 
@@ -55,7 +65,7 @@ function arcTweenTest() {
             return sx(d[0]); 
           })
           .attr("cy", function(d) { 
-            return d[1]; 
+            return sy(d[1]); 
           })
           .attr("r", 5)
           .attr("fill", "yellow")
@@ -80,7 +90,7 @@ function arcTweenTest() {
   };
 
   var objectGroup = svg.append("g")
-    .attr("transform", "translate(" + 300 + "," + 300 + ")");
+    // .attr("transform", "translate(" + sx(0) + "," + sy(0) + ")");
   var objects = objectGroup.selectAll("objects")
     .data([obj]);
 
@@ -88,13 +98,13 @@ function arcTweenTest() {
     .append("svg:image")
       .attr("xlink:href", "/images/svg/Abeille-bee.svg")
       .attr("x", function(o) { 
-        return o.position.x - o.width / 2; 
+        return sx(o.position.x) - o.width / 2; 
       })
       .attr("y", function(o) { 
-        return o.position.y - o.height / 2;
+        return sy(o.position.y) - o.height / 2;
       })
       .attr("transform", function(o) {
-        return "rotate(" + o.position.angle + ", " + o.position.x + ", " + o.position.y + ")";
+        return "rotate(" + o.position.angle + ", " + sx(o.position.x) + ", " + sy(o.position.y) + ")";
       })
       .attr("width", function(o) { return o.width; })
       .attr("height", function(o) { return o.height; });;
@@ -102,13 +112,13 @@ function arcTweenTest() {
   function tick() {
     objects
       .attr("x", function(o) { 
-        return o.position.x - o.width / 2; 
+        return sx(o.position.x) - o.width / 2; 
       })
       .attr("y", function(o) { 
-        return o.position.y - o.height / 2;
+        return sy(o.position.y) - o.height / 2;
       })
       .attr("transform", function(o) {
-        return "rotate(" + o.position.angle + ", " + o.position.x + ", " + o.position.y + ")";
+        return "rotate(" + o.position.angle + ", " + sx(o.position.x) + ", " + sy(o.position.y) + ")";
       })
   } 
 
@@ -121,7 +131,7 @@ function arcTweenTest() {
   d3.select(obj)
     .transition()
       .ease('linear')
-      .duration(3000)
+      .duration(1500)
       .attrTween("position", function() {
         return arcTween(this);
       });
@@ -130,9 +140,9 @@ function arcTweenTest() {
     return function(t) {
       var placeOnLine = lineLength * t;
       var point = path.node().getPointAtLength(placeOnLine);
-      var xDiff = o.position.x - point.x;
-      var yDiff = o.position.y - point.y;
-      var angle = ((Math.atan2(yDiff, xDiff) / (Math.PI * 2)) * 360) - 90;
+      var xDiff = point.x - o.position.x;
+      var yDiff = point.y - o.position.y;
+      var angle = ((Math.atan2(-yDiff, xDiff) / (Math.PI * 2)) * 360) + 90;
       console.log("current position - " + o.position.x + "," + o.position.y + ",a=" + o.position.angle);
       console.log("new position     - " + point.x + "," + point.y+ ",a=" + angle);
       return {x: point.x, y: point.y, angle: angle};
