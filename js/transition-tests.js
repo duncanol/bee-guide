@@ -10,7 +10,7 @@ jQuery(document).ready(function() {
 
 function arcTweenTest() {
 
-  var w = 700, h = 700;
+  var w = 400, h = 400;
 
   var sx = d3.scale.linear().domain([-w / 2,w / 2]).range([0,w]);
   var sy = d3.scale.linear().domain([-h / 2,h / 2]).range([h,0]);
@@ -18,6 +18,10 @@ function arcTweenTest() {
   var svg = d3.select(".contains-svg").append("svg")
     .attr("width", w)
     .attr("height", h);
+
+  var hiddenSvg = d3.select("body").append("svg")
+    .attr("width", 0)
+    .attr("height", 0);
 
   svg.append("circle")
     .attr("cx", sx(0))
@@ -35,16 +39,50 @@ function arcTweenTest() {
 
   var pathContainer = 
     svg.append("g")
-      .attr("transform", "translate(" + sx(0) + "," + sy(0) + ")");
+      // .attr("transform", "translate(" + sx(0) + "," + sy(0) + ")");
 
+  var pathConfig = {
+    startX: -75,
+    startY: 0,
+    ctrlX: 0,
+    ctrlY: 100,
+    endX: 75,
+    endY: 0,
+
+
+    getRealPath: function() {
+      return this.getPath(d3.scale.identity(), d3.scale.identity());
+    },
+
+
+    getGraphicalPath: function() {
+      return this.getPath(sx, sy);
+    }, 
+
+
+    getPath: function(xScale, yScale) {
+      var d = "M" + xScale(this.startX) + "," + yScale(this.startY) + 
+          " Q" + xScale(this.ctrlX) + "," + yScale(this.ctrlY) + " " + 
+          xScale(this.endX) + "," + yScale(this.endY);
+      console.log(d);
+      return d;
+    } 
+  }
 
 
   var path =
     pathContainer.append("path")
-      .attr("d", "M0,0 q150,150 300,0")
+      .attr("d", pathConfig.getGraphicalPath())
       // .attr("d", "M " + sx(100) + " " + sy(350) + " q " + sx(150) + " " + sy(-300) + " " + sx(300) + " " + sy(0))
       .attr("fill", "none")
       .attr("stroke", "black");
+
+  var realPath =
+    hiddenSvg.append("path")
+      .attr("d", pathConfig.getRealPath())
+      // .attr("d", "M " + sx(100) + " " + sy(350) + " q " + sx(150) + " " + sy(-300) + " " + sx(300) + " " + sy(0))
+      .attr("fill", "none")
+      .attr("stroke", "blue");
 
   var pointsData = [];
 
@@ -62,10 +100,10 @@ function arcTweenTest() {
       .enter()
         .append("circle")
           .attr("cx", function(d) { 
-            return sx(d[0]); 
+            return d[0]; 
           })
           .attr("cy", function(d) { 
-            return sy(d[1]); 
+            return d[1]; 
           })
           .attr("r", 5)
           .attr("fill", "yellow")
@@ -139,7 +177,7 @@ function arcTweenTest() {
   function arcTween(o) {
     return function(t) {
       var placeOnLine = lineLength * t;
-      var point = path.node().getPointAtLength(placeOnLine);
+      var point = realPath.node().getPointAtLength(placeOnLine);
       var xDiff = point.x - o.position.x;
       var yDiff = point.y - o.position.y;
       var angle = ((Math.atan2(-yDiff, xDiff) / (Math.PI * 2)) * 360) + 90;
